@@ -16,7 +16,6 @@ class JiraSoap
         options.each do |key, value|
             self.send(key.to_s+"=", value)
         end
-        p self
     end
     
     def open
@@ -29,13 +28,13 @@ class JiraSoap
         issue.type = "1"
         issue.assignee = @assignee
         
-        p issue
+        ret_issue = jira.createIssue(issue)
+        return ret_issue
     end
     
-    def addComment(comment) 
+    def addComment(issue, comment) 
         comment.author = @user
-        
-        p comment
+        jira.addComment(issue.key, comment)
     end
 end
 
@@ -51,19 +50,22 @@ class JiraImporter
     
     def import
         (doc/:defect).each do |defect|
-            if((defect/"defect-status").inner_html.downcase.index("open") > -1 )
-                jira.createIssue(create_issue_from_defect(defect))
+            begin
+                if((defect/"defect-status").inner_html.downcase.index("open") > -1 )
+                    issue = jira.createIssue(create_issue_from_defect(defect))
                 
-                comments = []
-                comments.push(create_initial_comment(defect))
+                    comments = []
+                    comments.push(create_initial_comment(defect))
                 
-                comments.concat(create_histories(defect))
+                    comments.concat(create_histories(defect))
                 
-                comments.each do |comment|
-                    jira.addComment(comment)
+                    comments.each do |comment|
+                        jira.addComment(issue, comment)
+                    end
                 end
-                
-                break
+            rescue
+                puts "Unable to parse node: "
+                p defect
             end
         end
     end
@@ -91,6 +93,21 @@ class JiraImporter
     
     def create_histories(defect)
         histories = []
+        
+        events = (defect/"defect-event")
+        events.each do |event|
+            author_last_name = (event/"event-author"/"last-name").inner_html
+            
+            if not author_last_name.empty?
+                author_first_name = (event/"event-author"/"first-name").inner_html
+                note = (event/:notes).inner_html
+                date = (event/"event-date").inner_html
+                
+                history = V2::RemoteComment.new
+                history.body = "On #{date}, #{author_first_name} #{author_last_name} wrote:\n " + note 
+                histories.push(history)
+            end
+        end
         
         return histories
     end
