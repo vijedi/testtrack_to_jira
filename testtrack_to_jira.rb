@@ -73,7 +73,8 @@ class JiraImporter
     private
     def create_issue_from_defect(defect)
         issue = V2::RemoteIssue.new
-        issue.summary = (defect/:summary).inner_html
+        number = (defect/"defect-number").inner_html
+        issue.summary = "TT-#{number} " + (defect/:summary).inner_html
         issue.description = (defect/"reported-by-record"/:description).inner_html
         return issue
     end
