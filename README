@@ -1,0 +1,69 @@
+testtrack_to_jira.rb
+
+testtrack_to_jira is a ruby script to help migrate data exported from Seapine
+Software's TestTrack Pro (http://www.seapine.com/ttpro.html).  
+
+This script looks through the XML file exported from TestTrack and publishes
+those issues into JIRA through JIRA's SOAP API.  This script only works for
+Open issues. Currently, this script:
+
+* Preserves the TestTrack Defect Summary and prepends the Test Track
+	Defect # for back reference
+* Preserves the TestTrack Description
+* Saves all history of an issue as comments to the JIRA issue
+* Assigns all issues to the user specified in the configuration file
+
+It DOES NOT:
+
+* Preserve priorities, assignees, attachments, states
+* Import closed or any-other non-open issues
+	
+
+Gems Needed
+-------------------------------------------------------------------------------
+Soap4r
+hpricot
+
+
+Running the Script
+------------------------------------------------------------------------------- 
+You will need to have jira4r (http://jira4r.rubyhaus.org/)installed to use this 
+script.  to install jira4r you need to run the following commands: 
+
+$ git clone git://git.rubyhaus.org/jira4r-git.git
+$ cd jira4r-git
+$ gem build jira4r.gemspec
+$ sudo gem install *.gem
+
+
+You will also need a configuration file in your home directory named: 
+tt_to_jira.yml
+
+Once the prerequisites have been satisfied, running the migration is as simple
+as typing:
+
+$ ./testtrack_to_jira.rb
+
+
+Example YML configuration 
+-------------------------------------------------------------------------------
+project: <JIRA Project ID>
+user: <JIRA user to import as>
+password: <Password for the Jira User>
+assignee: <Assignee for all issues imported by this script>
+tt_export: <Absolute path to TestTrack XML export file>
+endpoint: <SOAP endpoint for your jira install>
+
+
+Legal Stuff
+-------------------------------------------------------------------------------
+(c) 2009 Tejus Parikh
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
